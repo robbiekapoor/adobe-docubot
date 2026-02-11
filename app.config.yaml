@@ -1,0 +1,18 @@
+application:
+  name: adobe-docubot
+  version: 1.0.0
+  description: AI-powered documentation assistant for Slack
+
+actions:
+  ask:
+    function: actions/ask/index.js
+    web: 'yes'
+    runtime: 'nodejs:18'
+    annotations:
+      require-adobe-auth: false
+      final: true
+    limits:
+      timeout: 30000
+      memory: 512
+    inputs:
+      LOG_LEVEL: debug

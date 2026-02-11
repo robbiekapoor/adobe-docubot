@@ -1,0 +1,33 @@
+{
+  "name": "adobe-docubot",
+  "version": "1.0.0",
+  "description": "AI-powered documentation assistant for Slack built on Adobe App Builder",
+  "main": "actions/ask/index.js",
+  "scripts": {
+    "test": "jest",
+    "dev": "aio app dev",
+    "deploy": "aio app deploy",
+    "undeploy": "aio app undeploy",
+    "logs": "aio app logs"
+  },
+  "keywords": [
+    "adobe",
+    "app-builder",
+    "slack",
+    "ai",
+    "documentation",
+    "chatbot"
+  ],
+  "author": "Robbie Kapoor",
+  "license": "MIT",
+  "dependencies": {
+    "@adobe/aio-sdk": "^4.1.0",
+    "@anthropic-ai/sdk": "^0.9.1",
+    "axios": "^1.6.0",
+    "cheerio": "^1.0.0-rc.12",
+    "openai": "^4.20.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  }
+}
