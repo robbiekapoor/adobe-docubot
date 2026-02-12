@@ -132,16 +132,29 @@ function maskParams(params) {
     'OPENAI_API_KEY',
     'SLACK_BOT_TOKEN',
     'SLACK_SIGNING_SECRET',
-    'AIO_runtime_auth'
+    'AIO_runtime_auth',
+    'token',              // Slack verification token
+    'trigger_id',         // Slack trigger ID
+    'response_url'        // Slack response URL (contains sensitive webhook)
   ];
+  
+  // Keys to fully mask (no partial reveal)
+  const keysToFullyMask = ['token', 'trigger_id', 'response_url'];
   
   keysToMask.forEach(key => {
     if (masked[key]) {
       const value = masked[key];
-      if (typeof value === 'string' && value.length > 8) {
-        masked[key] = value.substring(0, 4) + '***MASKED***' + value.substring(value.length - 4);
-      } else {
+      
+      // Fully mask Slack tokens and URLs
+      if (keysToFullyMask.includes(key)) {
         masked[key] = '***MASKED***';
+      } else {
+        // Partially mask API keys (show first/last 4 chars)
+        if (typeof value === 'string' && value.length > 8) {
+          masked[key] = value.substring(0, 4) + '***MASKED***' + value.substring(value.length - 4);
+        } else {
+          masked[key] = '***MASKED***';
+        }
       }
     }
   });
