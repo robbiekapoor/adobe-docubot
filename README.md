@@ -144,7 +144,7 @@ App Builder provides enterprise-grade benefits:
 - 🔒 **Secure by default**: Isolated execution, encrypted credentials
 - ⚡ **Auto-scaling compute**: Handles 1 or 10,000 requests seamlessly
 - 🛡️ **Built-in authentication**: Adobe IMS integration for enterprise identity
-- 🌐 **Extend Adobe Commerce**: Native functionality extensions without core customization
+- 🌐 **Extend Adobe Products**: Native functionality extensions without core customization
 - 🔌 **Third-party integration**: Connect to any external service or API
 - 📦 **Managed platform**: Adobe handles compute, storage, and CDN provisioning
 - 🔄 **Simplified upgrades**: No core product changes, lower cost of ownership
