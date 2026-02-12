@@ -148,6 +148,28 @@ For AI API pricing:
 
 ---
 
+## Demo Talking Points
+
+### Opening Hook (30 seconds)
+"Meet Adobe DocuBot - your AI documentation assistant built on App Builder. Type `/ab` and ask anything about App Builder or any docs you configure. We're going to build it in 10 minutes using AI to build AI."
+
+### Key Messages
+1. **AI Building AI**: Meta demonstration of AI coding agents building AI assistants
+2. **Infinitely Reusable**: Works with ANY documentation (not just App Builder)
+3. **Configuration > Code**: Change docs in 30 seconds without touching code
+4. **Secure & Scalable**: Built on App Builder's enterprise-grade infrastructure
+5. **Production Ready**: Not vaporware - fully functional in 10 minutes
+6. **Universal Solution**: Solves documentation problems across entire organization
+
+### Wow Moments
+- ⚡ AI generates complete working code in 2 minutes
+- 🚀 Deploy with one command
+- 🤖 Watch DocuBot answer complex questions
+- 🔄 **Live reconfiguration**: Change from App Builder docs to Analytics docs during demo
+- 🌍 Realize it works with ANY docs (universal solution)
+- 🎯 Audience sees they can use this for their own docs
+
+---
 
 ## Test Questions for Demo
 
