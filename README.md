@@ -106,7 +106,7 @@ cd adobe-docubot
 # Clone the DocuBot code (use a temporary directory)
 git clone https://github.com/robbiekapoor/adobe-docubot.git temp-docubot
 
-# Copy the required files (preserving your .aio config)
+# Copy the required files from the cloned repo
 cp -r temp-docubot/actions/* ./actions/
 cp -r temp-docubot/utils ./
 cp temp-docubot/package.json ./package.json
@@ -117,8 +117,6 @@ cp temp-docubot/.gitignore ./.gitignore
 # Remove temporary directory
 rm -rf temp-docubot
 ```
-
-**Important:** Do NOT copy the `.aio` file from the repo - keep your initialized project's `.aio` configuration.
 
 #### Step 5: Configure Environment Variables
 ```bash
@@ -181,7 +179,7 @@ If you prefer to clone the repo directly and initialize afterwards:
 git clone https://github.com/robbiekapoor/adobe-docubot.git
 cd adobe-docubot
 
-# Initialize App Builder (this creates .aio config)
+# Initialize App Builder (this connects to Adobe I/O Runtime)
 aio login
 aio console project select
 
