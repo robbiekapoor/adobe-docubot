@@ -159,6 +159,12 @@ function maskParams(params) {
     }
   });
   
+  // Mask x-slack-signature in __ow_headers
+  if (masked.__ow_headers && masked.__ow_headers['x-slack-signature']) {
+    masked.__ow_headers = { ...masked.__ow_headers };
+    masked.__ow_headers['x-slack-signature'] = '***MASKED***';
+  }
+  
   return masked;
 }
 
