@@ -65,34 +65,134 @@ DocuBot: [Returns AEM-specific answer with code examples]
 ## Quick Start
 
 ### Prerequisites
-1. Adobe Developer Account with App Builder access
-2. Slack workspace with admin access
-3. Groq API key (free tier available at console.groq.com)
+1. **Adobe Developer Account** with App Builder access (sign up at developer.adobe.com)
+2. **Slack workspace** with admin access
+3. **Groq API key** (free tier: 14,400 requests/day at console.groq.com)
 
 ### Setup Steps
 
-1. **Install Adobe I/O CLI**
-   ```bash
-   npm install -g @adobe/aio-cli
-   ```
+#### Step 1: Install Adobe I/O CLI
+```bash
+npm install -g @adobe/aio-cli
+```
 
-2. **Initialize Project**
-   ```bash
-   aio app init adobe-docubot --standalone-app
-   ```
+#### Step 2: Login to Adobe
+```bash
+aio login
+```
+Follow the prompts to authenticate with your Adobe account.
 
-3. **Configure Environment Variables**
-   Create `.env` file with required credentials (see Environment Variables section below)
+#### Step 3: Create App Builder Project
+```bash
+# Initialize a new App Builder project
+aio app init adobe-docubot
 
-4. **Install Dependencies**
-   ```bash
-   npm install
-   ```
+# When prompted, select:
+# - Organization: (select your org)
+# - Project: Create new or select existing
+# - Workspace: Stage (recommended for development)
+# - Template: Select "All Actions" or "Generic"
+```
 
-5. **Deploy**
-   ```bash
-   aio app deploy
-   ```
+This creates the project structure and connects it to Adobe I/O Runtime.
+
+#### Step 4: Copy Code from GitHub Repository
+```bash
+# Navigate to your new project
+cd adobe-docubot
+
+# Clone the DocuBot code (use a temporary directory)
+git clone https://github.com/robbiekapoor/adobe-docubot.git temp-docubot
+
+# Copy the required files (preserving your .aio config)
+cp -r temp-docubot/actions/* ./actions/
+cp -r temp-docubot/utils ./
+cp temp-docubot/package.json ./package.json
+cp temp-docubot/app.config.yaml ./app.config.yaml
+cp temp-docubot/.env.example ./.env.example
+cp temp-docubot/.gitignore ./.gitignore
+
+# Remove temporary directory
+rm -rf temp-docubot
+```
+
+**Important:** Do NOT copy the `.aio` file from the repo - keep your initialized project's `.aio` configuration.
+
+#### Step 5: Configure Environment Variables
+```bash
+# Copy the example and edit with your credentials
+cp .env.example .env
+
+# Edit .env with your API keys:
+# - SLACK_BOT_TOKEN (from api.slack.com/apps)
+# - SLACK_SIGNING_SECRET (from api.slack.com/apps)
+# - GROQ_API_KEY (from console.groq.com)
+# - DOCS_BASE_URL (documentation source)
+# - DOCS_NAME (documentation name)
+```
+
+See the [Environment Variables](#environment-variables) section below for detailed configuration.
+
+#### Step 6: Install Dependencies
+```bash
+npm install
+```
+
+#### Step 7: Deploy to App Builder
+```bash
+aio app deploy
+```
+
+This will:
+- Build your action
+- Deploy to Adobe I/O Runtime
+- Provide your action URL (use this for Slack webhook)
+
+#### Step 8: Configure Slack App
+1. Go to api.slack.com/apps
+2. Create new app → From scratch
+3. Add Slash Command:
+   - Command: `/ab`
+   - Request URL: (your action URL from step 7)
+   - Description: "Ask DocuBot anything"
+4. Install app to workspace
+5. Copy Bot Token and Signing Secret to `.env`
+6. Redeploy: `aio app deploy`
+
+#### Step 9: Test It!
+```bash
+# In Slack, type:
+/ab How do I deploy my app?
+
+# Or test directly via CLI:
+aio runtime action invoke adobe-docubot/ask --param text "How do I deploy?" --result
+```
+
+---
+
+## Quick Start (Alternative: Manual Clone)
+
+If you prefer to clone the repo directly and initialize afterwards:
+
+```bash
+# Clone the repository
+git clone https://github.com/robbiekapoor/adobe-docubot.git
+cd adobe-docubot
+
+# Initialize App Builder (this creates .aio config)
+aio login
+aio console project select
+
+# Configure environment
+cp .env.example .env
+# Edit .env with your credentials
+
+# Install and deploy
+npm install
+aio app deploy
+```
+
+**Note:** This approach requires manually connecting to an Adobe Developer Console project.
 
 ---
 
