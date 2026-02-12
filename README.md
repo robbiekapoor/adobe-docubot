@@ -5,16 +5,21 @@
 An AI-powered Slack assistant that answers questions by intelligently scraping ANY public documentation and using AI to provide helpful, contextual answers with code examples and source links.
 
 **Built with**: Adobe App Builder + Groq AI + Slack  
-**Key Feature**: Configure it to work with ANY documentation site  
+**Default Configuration**: Scrapes App Builder documentation (developer.adobe.com/app-builder/docs/)  
+**Key Feature**: Easily reconfigure to work with ANY documentation site  
 **Pricing**: Available at developer.adobe.com/app-builder/docs/overview/
 
 ---
 
 ## What It Does
 
-Type `/ab <your question>` in Slack and get instant, intelligent answers from any documentation you configure:
+Type `/ab <your question>` in Slack and get instant, intelligent answers from any documentation you configure.
+
+**By default, DocuBot answers questions about Adobe App Builder.** Change two environment variables to point it at any other documentation source.
 
 ### Default: App Builder Docs
+
+**Out of the box**, DocuBot scrapes and answers questions from [Adobe App Builder documentation](https://developer.adobe.com/app-builder/docs/).
 ```
 You: /ab How do I deploy my app?
 
@@ -85,16 +90,29 @@ aio login
 Follow the prompts to authenticate with your Adobe account.
 
 #### Step 3: Create App Builder Project
+
+**Option A: Via Adobe Developer Console (Recommended)**
+1. Go to [Adobe Developer Console](https://developer.adobe.com/console)
+2. Click "Create project from template" → Select "App Builder"
+3. Enter Project Title and App Name
+4. Keep "Include Runtime with each workspace" checked
+5. Save to generate the project
+
+**Option B: Via CLI (Select existing project)**
 ```bash
-# Initialize a new App Builder project
+# Initialize and select your existing Console project
 aio app init adobe-docubot
 
 # When prompted, select:
 # - Organization: (select your org)
-# - Project: Create new or select existing
+# - Project: (select the project you created in Console)
 # - Workspace: Stage (recommended for development)
 # - Template: Select "All Actions" or "Generic"
 ```
+
+**Note:** Projects must be created in Adobe Developer Console first. The CLI is used to select and configure existing projects locally.
+
+📚 **Documentation:** [Create your First App Builder Application](https://developer.adobe.com/app-builder/docs/getting_started/first_app/)
 
 This creates the project structure and connects it to Adobe I/O Runtime.
 
