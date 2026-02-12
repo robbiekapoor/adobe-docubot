@@ -1,18 +1,24 @@
 application:
-  name: adobe-docubot
-  version: 1.0.0
-  description: AI-powered documentation assistant for Slack
-
-actions:
-  ask:
-    function: actions/ask/index.js
-    web: 'yes'
-    runtime: 'nodejs:18'
-    annotations:
-      require-adobe-auth: false
-      final: true
-    limits:
-      timeout: 30000
-      memory: 512
-    inputs:
-      LOG_LEVEL: debug
+  actions: actions
+  runtimeManifest:
+    packages:
+      adobe-docubot:
+        license: MIT
+        actions:
+          ask:
+            function: actions/ask/index.js
+            web: 'yes'
+            runtime: nodejs:18
+            inputs:
+              LOG_LEVEL: debug
+              SLACK_BOT_TOKEN: $SLACK_BOT_TOKEN
+              SLACK_SIGNING_SECRET: $SLACK_SIGNING_SECRET
+              GROQ_API_KEY: $GROQ_API_KEY
+              DOCS_BASE_URL: $DOCS_BASE_URL
+              DOCS_NAME: $DOCS_NAME
+            annotations:
+              require-adobe-auth: false
+              final: true
+            limits:
+              timeout: 30000
+              memorySize: 512
