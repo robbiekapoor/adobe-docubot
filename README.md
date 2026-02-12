@@ -67,7 +67,9 @@ DocuBot: [Returns AEM-specific answer with code examples]
 ### Prerequisites
 1. **Adobe Developer Account** with App Builder access (sign up at developer.adobe.com)
 2. **Slack workspace** with admin access
-3. **Groq API key** (free tier: 14,400 requests/day at console.groq.com)
+3. **AI API key** - Choose one:
+   - **Groq** (free tier: 14,400 requests/day at console.groq.com) - Recommended
+   - **Claude** (if you have API credits at console.anthropic.com)
 
 ### Setup Steps
 
