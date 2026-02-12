@@ -280,11 +280,116 @@ See `SECURITY.md` for detailed documentation.
 Once deployed, you could extend DocuBot with:
 
 ### Multi-Documentation Support
-1. **Multiple Sources**: `/ab [source] question` to query specific docs
-2. **Auto-Detection**: AI figures out which doc source based on question
-3. **Cross-Reference**: "This is explained in both App Builder and AEM docs..."
-4. **Admin Commands**: `/ab config add analytics https://...` to add new sources
-5. **Source Switching**: `/ab use analytics` to change default
+
+**Currently:** DocuBot searches ONE documentation source at a time (configured via `DOCS_BASE_URL`).
+
+**Enhancement:** Query multiple documentation sources with a single command!
+
+#### Option 1: Prefix Commands (Recommended - Easy to Implement)
+
+Allow users to specify which docs to search:
+
+```bash
+/ab How do I deploy?                    # Uses default (App Builder)
+/ab analytics How do I query data?      # Searches Analytics docs
+/ab aem How do I create pages?          # Searches AEM docs
+```
+
+**Implementation:** Modify `actions/ask/index.js`:
+
+```javascript
+// Add after line that extracts question
+let docsUrl = process.env.DOCS_BASE_URL;
+let docsName = process.env.DOCS_NAME;
+
+// Detect source prefix
+if (question.startsWith('analytics ')) {
+  docsUrl = 'https://experienceleague.adobe.com/docs/analytics/';
+  docsName = 'Adobe Analytics';
+  question = question.replace('analytics ', '');
+} else if (question.startsWith('aem ')) {
+  docsUrl = 'https://experienceleague.adobe.com/docs/experience-manager/';
+  docsName = 'AEM';
+  question = question.replace('aem ', '');
+} else if (question.startsWith('campaign ')) {
+  docsUrl = 'https://experienceleague.adobe.com/docs/campaign/';
+  docsName = 'Adobe Campaign';
+  question = question.replace('campaign ', '');
+}
+
+// Pass docsUrl and docsName to docScraper instead of reading from env
+```
+
+Then update `utils/docScraper.js` to accept these as parameters:
+
+```javascript
+async function scrapeDocs(question, docsUrl, docsName) {
+  // Use passed parameters instead of process.env
+  const baseUrl = docsUrl || process.env.DOCS_BASE_URL;
+  // ... rest of scraping logic
+}
+```
+
+#### Option 2: Smart Detection (AI-Based)
+
+Let AI figure out which docs based on keywords:
+
+```javascript
+function detectDocSource(question) {
+  const lowerQ = question.toLowerCase();
+  
+  if (lowerQ.includes('analytics') || lowerQ.includes('report') || lowerQ.includes('segment')) {
+    return {
+      url: 'https://experienceleague.adobe.com/docs/analytics/',
+      name: 'Adobe Analytics'
+    };
+  }
+  
+  if (lowerQ.includes('aem') || lowerQ.includes('experience manager') || lowerQ.includes('page')) {
+    return {
+      url: 'https://experienceleague.adobe.com/docs/experience-manager/',
+      name: 'AEM'
+    };
+  }
+  
+  // Default to App Builder
+  return {
+    url: process.env.DOCS_BASE_URL,
+    name: process.env.DOCS_NAME
+  };
+}
+```
+
+#### Option 3: Multi-Source Search (Most Powerful)
+
+Search ALL configured sources and let AI pick the best answer:
+
+```javascript
+const DOC_SOURCES = [
+  { url: 'https://developer.adobe.com/app-builder/docs/', name: 'App Builder' },
+  { url: 'https://experienceleague.adobe.com/docs/analytics/', name: 'Adobe Analytics' },
+  { url: 'https://experienceleague.adobe.com/docs/experience-manager/', name: 'AEM' }
+];
+
+async function searchAllSources(question) {
+  const results = await Promise.all(
+    DOC_SOURCES.map(source => scrapeDocs(question, source.url, source.name))
+  );
+  
+  // Combine all results and let AI pick most relevant
+  const combinedContext = results
+    .filter(r => r.content)
+    .map(r => `From ${r.name}:\n${r.content}`)
+    .join('\n\n');
+  
+  return combinedContext;
+}
+```
+
+**Trade-offs:**
+- **Option 1**: Fastest, most control, users know exactly what they're searching
+- **Option 2**: More user-friendly, but might guess wrong
+- **Option 3**: Most comprehensive, but slower and uses more AI tokens
 
 ### Intelligence Features
 6. **Conversational Memory**: Remember previous questions in thread
