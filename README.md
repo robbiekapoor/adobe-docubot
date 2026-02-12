@@ -4,9 +4,7 @@
 
 An AI-powered Slack assistant that answers questions by intelligently scraping ANY public documentation and using AI to provide helpful, contextual answers with code examples and source links.
 
-**Built with**: Adobe App Builder + Claude AI + Slack  
-**Demo time**: 10 minutes  
-**Purpose**: Summit 2026 demo showcasing AI-assisted development  
+**Built with**: Adobe App Builder + Groq AI + Slack  
 **Key Feature**: Configure it to work with ANY documentation site  
 **Pricing**: Available at developer.adobe.com/app-builder/docs/overview/
 
@@ -54,28 +52,37 @@ DocuBot: [Returns Analytics-specific answer with code examples]
 
 ---
 
-## Demo Files
+## Quick Start
 
-### 📋 Core Documentation
-- **`REQUIREMENTS.md`** - Full technical requirements and specifications
-- **`AGENTS.md`** - Context for AI coding agents (Cursor, Claude Code, etc.)
-- **`DEMO_SCRIPT.md`** - Complete 10-minute demo script with timing
-- **`SLIDE_1_CONTENT.md`** - PowerPoint content for opening App Builder intro
-- **`QUICK_REFERENCE.md`** - One-page cheat sheet for recording
-- **`PRE_RECORDING_CHECKLIST.md`** - Step-by-step preparation guide
+### Prerequisites
+1. Adobe Developer Account with App Builder access
+2. Slack workspace with admin access
+3. Groq API key (free tier available at console.groq.com)
 
-### 🎯 Quick Start
+### Setup Steps
 
-**For the demo:**
-1. Create PowerPoint with Slide 1 (use `SLIDE_1_CONTENT.md`)
-2. Read `QUICK_REFERENCE.md` (print or keep on second monitor)
-3. Follow `PRE_RECORDING_CHECKLIST.md` the day before
-4. Execute `DEMO_SCRIPT.md` during recording
+1. **Install Adobe I/O CLI**
+   ```bash
+   npm install -g @adobe/aio-cli
+   ```
 
-**For development:**
-1. Give `REQUIREMENTS.md` to your AI agent
-2. Use `AGENTS.md` for context
-3. Start building!
+2. **Initialize Project**
+   ```bash
+   aio app init adobe-docubot --standalone-app
+   ```
+
+3. **Configure Environment Variables**
+   Create `.env` file with required credentials (see Environment Variables section below)
+
+4. **Install Dependencies**
+   ```bash
+   npm install
+   ```
+
+5. **Deploy**
+   ```bash
+   aio app deploy
+   ```
 
 ---
 
@@ -100,13 +107,14 @@ Change DOCS_BASE_URL → Same bot, different expertise!
 ```
 
 **Tech Stack:**
-- Runtime: Adobe I/O Runtime (Node.js 20)
-- AI: Claude Haiku or GPT-3.5 Turbo
+- Runtime: Adobe I/O Runtime (Node.js 18)
+- AI: Groq (Llama 3.3 70B)
 - Scraping: Cheerio (HTML parsing)
 - Slack: Block Kit for rich formatting
 - Memory: 512MB
 - Timeout: 30 seconds
 - **Configuration**: Environment variables (no code changes!)
+- **Security**: Rate limiting, input validation, API key masking
 
 ---
 
@@ -132,9 +140,10 @@ App Builder provides enterprise-grade benefits:
 - 🔄 **Simplified upgrades**: No core product changes, lower cost of ownership
 
 ### AI Integration
-- Claude Haiku or GPT-3.5 Turbo
-- ~5 second response time (includes scraping + AI)
+- Groq API with Llama 3.3 70B model
+- ~3-5 second response time (includes scraping + AI)
 - Handles concurrent requests
+- Free tier: 14,400 requests/day
 
 ### Pricing Information
 For App Builder pricing and feature details, visit:
@@ -142,74 +151,20 @@ For App Builder pricing and feature details, visit:
 - [Security & Compliance](https://developer.adobe.com/app-builder/docs/guides/security/)
 - [Runtime Documentation](https://developer.adobe.com/runtime/docs/)
 
-For AI API pricing:
-- [Anthropic Pricing](https://www.anthropic.com/pricing)
-- [OpenAI Pricing](https://openai.com/pricing)
+For Groq API:
+- [Groq Console](https://console.groq.com/) - Free tier available
 
 ---
 
-## Demo Talking Points
-
-### Opening Hook (30 seconds)
-"Meet Adobe DocuBot - your AI documentation assistant built on App Builder. Type `/ab` and ask anything about App Builder or any docs you configure. We're going to build it in 10 minutes using AI to build AI."
-
-### Key Messages
-1. **AI Building AI**: Meta demonstration of AI coding agents building AI assistants
-2. **Infinitely Reusable**: Works with ANY documentation (not just App Builder)
-3. **Configuration > Code**: Change docs in 30 seconds without touching code
-4. **Secure & Scalable**: Built on App Builder's enterprise-grade infrastructure
-5. **Production Ready**: Not vaporware - fully functional in 10 minutes
-6. **Universal Solution**: Solves documentation problems across entire organization
-
-### Wow Moments
-- ⚡ AI generates complete working code in 2 minutes
-- 🚀 Deploy with one command
-- 🤖 Watch DocuBot answer complex questions
-- 🔄 **Live reconfiguration**: Change from App Builder docs to Analytics docs during demo
-- 🌍 Realize it works with ANY docs (universal solution)
-- 🎯 Audience sees they can use this for their own docs
-
----
-
-## Test Questions for Demo
-
-### Easy (Show It Works)
-```
-/ab How do I deploy my app?
-```
-Expected: Returns `aio app deploy` command with explanation
-
-### Technical (Show Intelligence)
-```
-/ab What are the memory limits for actions?
-```
-Expected: Returns 256MB-2048MB with details
-
-### Advanced (Show Understanding)
-```
-/ab What's the difference between aio app run and aio app dev?
-```
-Expected: Returns clear explanation of the two commands with practical tips
-
-### Error Handling (Optional)
-```
-/ab Tell me about React hooks
-```
-Expected: Politely says not in App Builder docs, stays helpful
-
----
-
-## Environment Variables Needed
+## Environment Variables
 
 ```bash
 # Slack
 SLACK_BOT_TOKEN=xoxb-...
 SLACK_SIGNING_SECRET=...
 
-# AI (choose one)
-ANTHROPIC_API_KEY=sk-ant-...
-# OR
-OPENAI_API_KEY=sk-...
+# AI
+GROQ_API_KEY=gsk-...
 
 # Documentation Configuration (THIS IS THE MAGIC!)
 DOCS_BASE_URL=https://developer.adobe.com/app-builder/docs/
@@ -278,17 +233,16 @@ adobe-docubot/
 │   └── ask/
 │       └── index.js          # Main AI handler
 ├── utils/
-│   ├── docScraper.js         # Scrapes App Builder docs
-│   ├── aiClient.js           # AI API wrapper
-│   └── costCalculator.js     # Cost calculation logic
+│   ├── docScraper.js         # Scrapes documentation
+│   ├── aiClient.js           # Groq AI API wrapper
+│   ├── costCalculator.js     # Cost calculation logic
+│   └── security.js           # Rate limiting, input validation
 ├── app.config.yaml           # Action configuration
 ├── package.json              # Dependencies
 ├── .env                      # Environment variables (not committed)
-├── REQUIREMENTS.md           # Full specifications
-├── AGENTS.md                 # AI agent context
-├── DEMO_SCRIPT.md            # Demo script
-├── QUICK_REFERENCE.md        # Cheat sheet
-└── PRE_RECORDING_CHECKLIST.md # Setup guide
+├── .env.example              # Environment variables template
+├── SECURITY.md               # Security features documentation
+└── README.md                 # This file
 ```
 
 ---
@@ -298,33 +252,26 @@ adobe-docubot/
 ```json
 {
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.20.0",
+    "@adobe/aio-sdk": "^6.0.0",
     "axios": "^1.6.0",
-    "cheerio": "^1.0.0",
-    "@slack/web-api": "^6.11.0",
-    "@adobe/aio-sdk": "^5.0.0"
+    "cheerio": "^1.0.0-rc.12"
   }
 }
 ```
 
+**Note**: Groq API is accessed via REST API (no SDK dependency needed)
+
 ---
 
-## Buddy's Personality
+## Security Features
 
-**Tone**: Helpful coworker, not a robot or formal documentation
+DocuBot includes built-in security:
+- ✅ **Rate Limiting**: 10 requests per user per minute
+- ✅ **Input Validation**: Max 500 characters, sanitized input
+- ✅ **API Key Masking**: Keys never appear in logs
+- ✅ **User-Friendly Errors**: No system details exposed
 
-**Do's:**
-- ✅ Be concise (2-4 paragraphs)
-- ✅ Include code examples
-- ✅ Add practical tips
-- ✅ Use 🤖 for branding
-- ✅ End with 📖 source link
-
-**Don'ts:**
-- ❌ Be overly formal ("The deployment procedure necessitates...")
-- ❌ Be too casual ("Just type aio app deploy lol 🎉🚀💯")
-- ❌ Over-apologize ("I'm just an AI...")
-- ❌ Give up easily (try to be helpful)
+See `SECURITY.md` for detailed documentation.
 
 ---
 
@@ -369,40 +316,25 @@ After deploying, track:
 ## Resources
 
 - [App Builder Documentation](https://developer.adobe.com/app-builder/docs/)
+- [Groq Console](https://console.groq.com/)
 - [Slack Block Kit Builder](https://app.slack.com/block-kit-builder/)
-- [Claude API Documentation](https://docs.anthropic.com/claude/reference/)
-- [OpenAI API Documentation](https://platform.openai.com/docs/)
 - [Cheerio Documentation](https://cheerio.js.org/)
-
----
-
-## Credits
-
-**Created for**: Adobe Summit 2026  
-**Demo Purpose**: Showcase AI-assisted App Builder development  
-**Theme**: Understanding App Builder costs + AI capabilities  
-**Target Audience**: Developers, technical architects, product managers  
-**Presentation Length**: 15-20 minutes (8-9 slides)
 
 ---
 
 ## License
 
-This is a demo project. Feel free to use, modify, and deploy for your own needs.
+MIT License - Feel free to use, modify, and deploy for your own needs.
 
 ---
 
-## Next Steps
+## Support
 
-1. ✅ Read through `PRE_RECORDING_CHECKLIST.md`
-2. ✅ Set up Slack workspace and bot
-3. ✅ Get AI API key (Claude or OpenAI)
-4. ✅ Practice demo once (don't record)
-5. ✅ Record demo following `DEMO_SCRIPT.md`
-6. ✅ Deploy for real use by your team!
+For issues or questions:
+1. Check `SECURITY.md` for security-related questions
+2. Review App Builder documentation for platform questions
+3. Open an issue in this repository
 
 ---
 
 **Ready to build DocuBot? Let's go! 🚀**
-
-Questions? Check the detailed documentation in each file, or just ask DocuBot once it's deployed! 🤖
