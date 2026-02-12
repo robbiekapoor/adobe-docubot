@@ -49,19 +49,35 @@ Output: "How do I deploy process.env.SECRET?"
 
 ### 3. API Key Masking
 
-**Protection**: Prevents API keys from appearing in logs.
+**Protection**: Prevents API keys and sensitive tokens from appearing in logs.
 
-**Masked Keys**:
+**Fully Masked (no partial reveal)**:
+- Slack verification token (`token`)
+- Slack trigger ID (`trigger_id`)
+- Slack response URLs (`response_url`)
+
+**Partially Masked (first/last 4 chars shown for debugging)**:
 - Groq API keys (`gsk_...`)
 - Anthropic keys (`sk-ant-...`)
 - OpenAI keys (`sk-...`)
 - Slack bot tokens (`xoxb-...`)
-- Bearer tokens
+- Slack signing secrets
+- Adobe runtime auth
+
+**Why two levels of masking?**
+- **Full masking**: Single-use tokens and webhook URLs are completely hidden
+- **Partial masking**: API keys show first/last 4 chars to help debug which key is being used
 
 **Example Log Output**:
-```
-Before: GROQ_API_KEY=gsk_1234567890abcdefghij
-After:  GROQ_API_KEY=gsk_***MASKED***fghij
+```javascript
+// Fully masked (most secure)
+token: '***MASKED***'
+trigger_id: '***MASKED***'
+response_url: '***MASKED***'
+
+// Partially masked (debugging-friendly)
+GROQ_API_KEY: 'gsk_***MASKED***Lijh'
+SLACK_BOT_TOKEN: 'xoxb***MASKED***QS3p'
 ```
 
 **Masked in**:
@@ -69,6 +85,7 @@ After:  GROQ_API_KEY=gsk_***MASKED***fghij
 - Error messages
 - Debug output
 - API error responses
+- All param logging
 
 ### 4. Simplified AI Provider (Groq Only)
 
@@ -175,10 +192,18 @@ if (trimmed.length > 1000) { ... }
 # Check logs
 aio app logs
 
-# Should see:
-GROQ_API_KEY: "gsk_***MASKED***"
-# NOT:
-GROQ_API_KEY: "gsk_1234567890abcdefghij"
+# Should see FULLY masked:
+token: '***MASKED***'
+trigger_id: '***MASKED***'
+response_url: '***MASKED***'
+
+# Should see PARTIALLY masked (debugging-friendly):
+GROQ_API_KEY: 'gsk_***MASKED***Lijh'
+SLACK_BOT_TOKEN: 'xoxb***MASKED***QS3p'
+
+# Should NEVER see:
+GROQ_API_KEY: 'gsk_1234567890abcdefghij'  ❌
+token: 'oLE9pS3HcaSWkMUBjH8Y6WkW'  ❌
 ```
 
 ## Security Limitations
@@ -264,8 +289,13 @@ If deploying in EU:
 
 ## Updates
 
-Last updated: 2026-02-12
-Security review: Pending (recommended before production)
+**Last updated**: 2026-02-12  
+**Security enhancements**:
+- ✅ Added full masking for Slack tokens (`token`, `trigger_id`, `response_url`)
+- ✅ Maintained partial masking for API keys (debugging-friendly)
+- ✅ Two-tier masking strategy (full vs. partial)
+
+**Security review**: Pending (recommended before production)
 
 ## Contact
 
