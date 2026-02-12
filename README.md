@@ -133,7 +133,7 @@ Change DOCS_BASE_URL → Same bot, different expertise!
 ### Runtime (App Builder)
 - Memory: 512 MB per action
 - Duration: ~5 seconds per question
-- Runtime: Adobe I/O Runtime (Node.js 20)
+- Runtime: Adobe I/O Runtime (Node.js 18)
 - Deployment: One command (`aio app deploy`)
 - **Security**: Isolated container execution
 - **Scalability**: Auto-scales with demand
