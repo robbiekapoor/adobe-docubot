@@ -198,22 +198,124 @@ aio app deploy
 
 ## Architecture
 
-```
-User types in Slack: /ab How do I deploy?
-         ↓
-Slack → Adobe I/O Runtime Action
-         ↓
-Action:
-  1. Reads DOCS_BASE_URL from environment
-  2. Scrapes that documentation site
-  3. Extracts relevant documentation
-  4. Sends to Claude AI with question
-  5. AI generates helpful answer
-  6. Formats for Slack Block Kit
-         ↓
-User sees formatted answer in Slack
+### High-Level Flow
 
-Change DOCS_BASE_URL → Same bot, different expertise!
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                              USER IN SLACK                              │
+│                     Types: /ab How do I deploy?                         │
+└────────────────────────────────┬────────────────────────────────────────┘
+                                 │
+                                 │ HTTPS Request
+                                 ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                         ADOBE APP BUILDER                               │
+│                    (Adobe I/O Runtime - Serverless)                     │
+│ ┌─────────────────────────────────────────────────────────────────────┐ │
+│ │                    DocuBot Action (Node.js 18)                      │ │
+│ │                          512MB Memory                               │ │
+│ │                                                                     │ │
+│ │  ┌──────────────────────────────────────────────────────────────┐  │ │
+│ │  │ 1. Security Layer                                            │  │ │
+│ │  │    - Rate limit check (10/min per user)                      │  │ │
+│ │  │    - Input validation & sanitization                         │  │ │
+│ │  │    - API key masking                                         │  │ │
+│ │  └──────────────────────────────────────────────────────────────┘  │ │
+│ │                              ↓                                      │ │
+│ │  ┌──────────────────────────────────────────────────────────────┐  │ │
+│ │  │ 2. Documentation Scraper                                     │  │ │
+│ │  │    - Read DOCS_BASE_URL from environment                     │  │ │
+│ │  │    - Fetch pages from docs site                              │  │ │
+│ │  │    - Parse HTML with Cheerio                                 │  │ │
+│ │  │    - Extract relevant content                                │  │ │
+│ │  └──────────────────────────────────────────────────────────────┘  │ │
+│ │                              ↓                                      │ │
+│ │  ┌──────────────────────────────────────────────────────────────┐  │ │
+│ │  │ 3. AI Processing                                ──────────┐  │  │ │
+│ │  │    - Prepare prompt with docs + question           │      │  │  │ │
+│ │  │    - Call Groq API ────────────────────────────────┼──────┼──┼──┼─┐
+│ │  │    - Parse AI response                             │      │  │  │ │
+│ │  └────────────────────────────────────────────────────┼──────┘  │ │ │
+│ │                              ↓                        │         │ │ │
+│ │  ┌──────────────────────────────────────────────────────────────┐  │ │
+│ │  │ 4. Response Formatter                                        │  │ │
+│ │  │    - Format for Slack Block Kit                              │  │ │
+│ │  │    - Add emojis, code blocks, links                          │  │ │
+│ │  └──────────────────────────────────────────────────────────────┘  │ │
+│ └─────────────────────────────────────────────────────────────────────┘ │
+└────────────────────────────────┬────────────────────┬───────────────────┘
+                                 │                    │
+                    HTTPS Response│                    │ HTTPS Request
+                                 │                    │
+                                 ▼                    ▼
+┌──────────────────────────────────────┐  ┌─────────────────────────────┐
+│          SLACK WORKSPACE             │  │      GROQ AI API            │
+│                                      │  │  (Llama 3.3 70B Model)      │
+│  User sees formatted response:       │  │                             │
+│  🤖 *Adobe DocuBot*                  │  │  - Receives prompt          │
+│                                      │  │  - Analyzes documentation   │
+│  To deploy, use:                     │  │  - Generates answer         │
+│  `aio app deploy`                    │  │  - Returns JSON response    │
+│                                      │  │                             │
+│  💡 Pro tip: ...                     │  │  Free tier:                 │
+│  📖 Learn more: [link]               │  │  14,400 requests/day        │
+└──────────────────────────────────────┘  └─────────────────────────────┘
+                                                      ▲
+                                                      │
+                                         Fetches docs from configured URL
+                                                      │
+                                                      ▼
+                                          ┌───────────────────────────┐
+                                          │  DOCUMENTATION SOURCE     │
+                                          │  (Configurable)           │
+                                          │                           │
+                                          │  Default:                 │
+                                          │  developer.adobe.com      │
+                                          │  /app-builder/docs/       │
+                                          │                           │
+                                          │  Can be changed to:       │
+                                          │  - AEM, Analytics, AEP    │
+                                          │  - Kubernetes, React      │
+                                          │  - Your internal docs     │
+                                          │  - ANY public docs!       │
+                                          └───────────────────────────┘
+```
+
+### Data Flow
+
+1. **User Action**: Types `/ab <question>` in Slack
+2. **Slack Webhook**: Sends HTTPS POST to App Builder action URL
+3. **Security Check**: Rate limiting (10/min), input validation, sanitization
+4. **Doc Scraping**: Fetches relevant pages from `DOCS_BASE_URL` (configurable)
+5. **AI Request**: Sends documentation context + question to Groq API
+6. **AI Response**: Llama 3.3 70B generates contextual answer with examples
+7. **Format Response**: Converts to Slack Block Kit format (markdown, emojis, links)
+8. **Return to User**: Displays formatted answer in Slack channel
+
+### Key Components
+
+| Component | Technology | Purpose |
+|-----------|-----------|---------|
+| **Runtime** | Adobe I/O Runtime (OpenWhisk) | Serverless execution, auto-scaling |
+| **Action Handler** | Node.js 18 | Orchestrates entire flow |
+| **AI Service** | Groq API (Llama 3.3 70B) | Natural language understanding & generation |
+| **Web Scraper** | Cheerio (HTML parser) | Extracts clean text from documentation |
+| **Chat Interface** | Slack Block Kit | Rich message formatting |
+| **Security** | Custom middleware | Rate limiting, input validation, key masking |
+| **Configuration** | Environment variables | Point at ANY documentation source |
+
+### Configuration Magic
+
+```bash
+# Change these two variables:
+DOCS_BASE_URL=https://developer.adobe.com/app-builder/docs/
+DOCS_NAME=App Builder
+
+# Redeploy (30 seconds):
+aio app deploy
+
+# Now the SAME code answers questions from different docs!
+# Works with: Adobe products, Kubernetes, React, Docker, your internal docs
 ```
 
 **Tech Stack:**
