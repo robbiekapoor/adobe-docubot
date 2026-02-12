@@ -28,27 +28,37 @@ DocuBot: 🤖 To deploy your app, use:
        📖 Learn more: developer.adobe.com/app-builder/docs/...
 ```
 
-### Reconfigure for Analytics (or ANY docs)
+### Reconfigure for AEM (or ANY docs)
 ```bash
 # Change environment variables:
-DOCS_BASE_URL=https://experienceleague.adobe.com/docs/analytics/
-DOCS_NAME=Adobe Analytics
+DOCS_BASE_URL=https://experienceleague.adobe.com/en/docs/experience-manager/
+DOCS_NAME=Adobe Experience Manager
 
 # Redeploy (30 seconds):
 aio app deploy
 
-# Now ask Analytics questions:
-You: /ab How do I query data from Adobe Analytics?
-DocuBot: [Returns Analytics-specific answer with code examples]
+# Now ask AEM questions:
+You: /ab How do I create content fragments?
+DocuBot: [Returns AEM-specific answer with code examples]
 ```
 
 ### Works With ANY Documentation
-- ✅ Adobe products (App Builder, Analytics, AEM, Target, Campaign)
-- ✅ Internal company docs
-- ✅ Framework docs (React, Vue, Angular, Next.js)
+
+**Adobe Products:**
+- ✅ App Builder (developer.adobe.com/app-builder/docs/)
+- ✅ Adobe Experience Manager (experienceleague.adobe.com/en/docs/experience-manager/)
+- ✅ Adobe Experience Platform (experienceleague.adobe.com/en/docs/experience-platform/)
+
+**Public Documentation:**
+- ✅ Kubernetes (kubernetes.io/docs/)
+- ✅ React (react.dev/)
+- ✅ Docker (docs.docker.com/)
+- ✅ Angular, Vue, Next.js, and more
+
+**Other Sources:**
+- ✅ Internal company documentation
 - ✅ API documentation (Stripe, Twilio, AWS)
-- ✅ Platform docs (Kubernetes, Docker, Terraform)
-- ✅ ANY public documentation site
+- ✅ ANY publicly accessible docs
 
 ---
 
@@ -171,12 +181,26 @@ DOCS_BASE_URL=https://developer.adobe.com/app-builder/docs/
 DOCS_NAME=App Builder
 
 # Examples of other docs you can point to:
-# DOCS_BASE_URL=https://experienceleague.adobe.com/docs/analytics/
-# DOCS_NAME=Adobe Analytics
 
-# DOCS_BASE_URL=https://experienceleague.adobe.com/docs/experience-manager/
+# Adobe Experience Manager:
+# DOCS_BASE_URL=https://experienceleague.adobe.com/en/docs/experience-manager/
 # DOCS_NAME=Adobe Experience Manager
 
+# Adobe Experience Platform:
+# DOCS_BASE_URL=https://experienceleague.adobe.com/en/docs/experience-platform/
+# DOCS_NAME=Adobe Experience Platform
+
+# Public Documentation:
+# DOCS_BASE_URL=https://kubernetes.io/docs/
+# DOCS_NAME=Kubernetes
+
+# DOCS_BASE_URL=https://react.dev/
+# DOCS_NAME=React
+
+# DOCS_BASE_URL=https://docs.docker.com/
+# DOCS_NAME=Docker
+
+# Internal company docs:
 # DOCS_BASE_URL=https://docs.yourcompany.com/platform/
 # DOCS_NAME=Internal Platform
 
@@ -191,8 +215,13 @@ AIO_runtime_namespace=...
 
 ```bash
 # 1. Edit .env file
-DOCS_BASE_URL=https://new-docs-url.com/
-DOCS_NAME=New Product Name
+# Switch to Experience Platform:
+DOCS_BASE_URL=https://experienceleague.adobe.com/en/docs/experience-platform/
+DOCS_NAME=Adobe Experience Platform
+
+# Or switch to Kubernetes:
+DOCS_BASE_URL=https://kubernetes.io/docs/
+DOCS_NAME=Kubernetes
 
 # 2. Redeploy (30 seconds)
 aio app deploy
@@ -290,9 +319,15 @@ Once deployed, you could extend DocuBot with:
 Allow users to specify which docs to search:
 
 ```bash
+# Adobe Products
 /ab How do I deploy?                    # Uses default (App Builder)
-/ab analytics How do I query data?      # Searches Analytics docs
-/ab aem How do I create pages?          # Searches AEM docs
+/ab aem How do I create content fragments?  # Searches AEM docs
+/ab aep How do I ingest data?           # Searches Experience Platform docs
+
+# Public Documentation
+/ab k8s How do I create a pod?          # Searches Kubernetes docs
+/ab react How do I use hooks?           # Searches React docs
+/ab docker How do I create a container? # Searches Docker docs
 ```
 
 **Implementation:** Modify `actions/ask/index.js`:
@@ -302,19 +337,29 @@ Allow users to specify which docs to search:
 let docsUrl = process.env.DOCS_BASE_URL;
 let docsName = process.env.DOCS_NAME;
 
-// Detect source prefix
-if (question.startsWith('analytics ')) {
-  docsUrl = 'https://experienceleague.adobe.com/docs/analytics/';
-  docsName = 'Adobe Analytics';
-  question = question.replace('analytics ', '');
-} else if (question.startsWith('aem ')) {
-  docsUrl = 'https://experienceleague.adobe.com/docs/experience-manager/';
-  docsName = 'AEM';
+// Detect source prefix - Adobe Products
+if (question.startsWith('aem ')) {
+  docsUrl = 'https://experienceleague.adobe.com/en/docs/experience-manager/';
+  docsName = 'Adobe Experience Manager';
   question = question.replace('aem ', '');
-} else if (question.startsWith('campaign ')) {
-  docsUrl = 'https://experienceleague.adobe.com/docs/campaign/';
-  docsName = 'Adobe Campaign';
-  question = question.replace('campaign ', '');
+} else if (question.startsWith('aep ')) {
+  docsUrl = 'https://experienceleague.adobe.com/en/docs/experience-platform/';
+  docsName = 'Adobe Experience Platform';
+  question = question.replace('aep ', '');
+}
+// Detect source prefix - Public Docs
+else if (question.startsWith('k8s ') || question.startsWith('kubernetes ')) {
+  docsUrl = 'https://kubernetes.io/docs/';
+  docsName = 'Kubernetes';
+  question = question.replace(/^(k8s|kubernetes) /, '');
+} else if (question.startsWith('react ')) {
+  docsUrl = 'https://react.dev/';
+  docsName = 'React';
+  question = question.replace('react ', '');
+} else if (question.startsWith('docker ')) {
+  docsUrl = 'https://docs.docker.com/';
+  docsName = 'Docker';
+  question = question.replace('docker ', '');
 }
 
 // Pass docsUrl and docsName to docScraper instead of reading from env
@@ -338,19 +383,47 @@ Let AI figure out which docs based on keywords:
 function detectDocSource(question) {
   const lowerQ = question.toLowerCase();
   
-  if (lowerQ.includes('analytics') || lowerQ.includes('report') || lowerQ.includes('segment')) {
+  // Adobe Products
+  if (lowerQ.includes('aem') || lowerQ.includes('experience manager') || lowerQ.includes('content fragment')) {
     return {
-      url: 'https://experienceleague.adobe.com/docs/analytics/',
-      name: 'Adobe Analytics'
+      url: 'https://experienceleague.adobe.com/en/docs/experience-manager/',
+      name: 'Adobe Experience Manager'
     };
   }
   
-  if (lowerQ.includes('aem') || lowerQ.includes('experience manager') || lowerQ.includes('page')) {
+  if (lowerQ.includes('experience platform') || lowerQ.includes('aep') || lowerQ.includes('data lake') || lowerQ.includes('schema')) {
     return {
-      url: 'https://experienceleague.adobe.com/docs/experience-manager/',
-      name: 'AEM'
+      url: 'https://experienceleague.adobe.com/en/docs/experience-platform/',
+      name: 'Adobe Experience Platform'
     };
   }
+  
+  // Public Documentation
+  if (lowerQ.includes('kubernetes') || lowerQ.includes('k8s') || lowerQ.includes('pod') || lowerQ.includes('deployment')) {
+    return {
+      url: 'https://kubernetes.io/docs/',
+      name: 'Kubernetes'
+    };
+  }
+  
+  if (lowerQ.includes('react') || lowerQ.includes('hook') || lowerQ.includes('jsx') || lowerQ.includes('component')) {
+    return {
+      url: 'https://react.dev/',
+      name: 'React'
+    };
+  }
+  
+  if (lowerQ.includes('docker') || lowerQ.includes('container') || lowerQ.includes('dockerfile') || lowerQ.includes('image')) {
+    return {
+      url: 'https://docs.docker.com/',
+      name: 'Docker'
+    };
+  }
+  
+  // Add more as needed...
+  // Angular: https://angular.dev/
+  // Vue: https://vuejs.org/guide/
+  // Next.js: https://nextjs.org/docs
   
   // Default to App Builder
   return {
@@ -366,9 +439,15 @@ Search ALL configured sources and let AI pick the best answer:
 
 ```javascript
 const DOC_SOURCES = [
+  // Adobe Products
   { url: 'https://developer.adobe.com/app-builder/docs/', name: 'App Builder' },
-  { url: 'https://experienceleague.adobe.com/docs/analytics/', name: 'Adobe Analytics' },
-  { url: 'https://experienceleague.adobe.com/docs/experience-manager/', name: 'AEM' }
+  { url: 'https://experienceleague.adobe.com/en/docs/experience-manager/', name: 'Adobe Experience Manager' },
+  { url: 'https://experienceleague.adobe.com/en/docs/experience-platform/', name: 'Adobe Experience Platform' },
+  
+  // Open Source / Public Docs
+  { url: 'https://kubernetes.io/docs/', name: 'Kubernetes' },
+  { url: 'https://react.dev/', name: 'React' },
+  { url: 'https://docs.docker.com/', name: 'Docker' }
 ];
 
 async function searchAllSources(question) {
@@ -386,10 +465,13 @@ async function searchAllSources(question) {
 }
 ```
 
+**Supported Documentation Sources:**
+All three options support Adobe products (AEM, Experience Platform) AND public docs (Kubernetes, React, Docker, and more). Add any documentation source by following the patterns above.
+
 **Trade-offs:**
-- **Option 1**: Fastest, most control, users know exactly what they're searching
-- **Option 2**: More user-friendly, but might guess wrong
-- **Option 3**: Most comprehensive, but slower and uses more AI tokens
+- **Option 1**: Fastest, most control, users know exactly what they're searching (best for many sources)
+- **Option 2**: More user-friendly, but might guess wrong (best for 3-5 common sources)
+- **Option 3**: Most comprehensive, searches everything, but slower and uses more AI tokens (best for broad questions)
 
 ### Intelligence Features
 6. **Conversational Memory**: Remember previous questions in thread
