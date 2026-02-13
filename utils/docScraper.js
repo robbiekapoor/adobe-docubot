@@ -14,16 +14,6 @@ const DOCS_CONFIG = {
   name: process.env.DOCS_NAME || 'App Builder',
 };
 
-// Default App Builder documentation URLs (for demo)
-const APP_BUILDER_URLS = {
-  overview: 'https://developer.adobe.com/app-builder/docs/overview/',
-  gettingStarted: 'https://developer.adobe.com/app-builder/docs/getting_started/',
-  guides: 'https://developer.adobe.com/app-builder/docs/guides/',
-  deployment: 'https://developer.adobe.com/app-builder/docs/guides/deployment/',
-  runtime: 'https://developer.adobe.com/runtime/docs/guides/',
-  actions: 'https://developer.adobe.com/app-builder/docs/guides/actions/',
-};
-
 /**
  * Scrape relevant documentation based on user question
  * @param {string} question - User's question
@@ -31,8 +21,8 @@ const APP_BUILDER_URLS = {
  */
 async function scrapeDocs(question) {
   try {
-    // Identify keywords and relevant URLs
-    const urls = identifyRelevantUrls(question);
+    // Build search URLs based on keywords
+    const urls = buildSearchUrls(question);
     
     // Fetch and parse documentation
     const docContents = await Promise.all(
@@ -43,7 +33,7 @@ async function scrapeDocs(question) {
     const combinedContent = docContents
       .filter(content => content)
       .join('\n\n---\n\n')
-      .substring(0, 12000);
+      .substring(0, 15000); // Increased to 15000 to accommodate multiple pages
     
     return combinedContent;
     
@@ -54,38 +44,97 @@ async function scrapeDocs(question) {
 }
 
 /**
- * Identify relevant documentation URLs based on question keywords
+ * Build search URLs based on question keywords
+ * For App Builder, scrape entire sections to catch all related docs
  * @param {string} question - User's question
- * @returns {Array<string>} Array of relevant URLs
+ * @returns {Array<string>} Array of URLs to scrape
  */
-function identifyRelevantUrls(question) {
+function buildSearchUrls(question) {
   const lowerQuestion = question.toLowerCase();
   const urls = [];
   
-  // Keyword matching for App Builder docs
-  if (lowerQuestion.includes('deploy') || lowerQuestion.includes('deployment')) {
-    urls.push(APP_BUILDER_URLS.deployment);
+  // For App Builder, use the comprehensive guides path
+  const guidesBase = 'https://developer.adobe.com/app-builder/docs/guides/app_builder_guides/';
+  
+  // Scrape ENTIRE sections based on topic area
+  
+  // Deployment section (deployment, CI/CD, credential rotation, github actions)
+  if (lowerQuestion.match(/\b(deploy|deployment|undeploy|ci\/?cd|pipeline|credential|rotation|rotate|github|cicd)\b/)) {
+    urls.push(
+      guidesBase + 'deployment/deployment',
+      guidesBase + 'deployment/ci_cd',
+      guidesBase + 'deployment/credential-rotation'
+    );
   }
   
-  if (lowerQuestion.includes('start') || lowerQuestion.includes('begin') || lowerQuestion.includes('getting started')) {
-    urls.push(APP_BUILDER_URLS.gettingStarted);
+  // Configuration section (app.config.yaml, .env, hooks, manifest)
+  if (lowerQuestion.match(/\b(config|configuration|app\.config|manifest|\.env|environment|variable|hook)\b/)) {
+    urls.push(
+      guidesBase + 'configuration/configuration',
+      guidesBase + 'configuration/app-hooks'
+    );
   }
   
-  if (lowerQuestion.includes('action') || lowerQuestion.includes('function') || lowerQuestion.includes('runtime')) {
-    urls.push(APP_BUILDER_URLS.actions);
-    urls.push(APP_BUILDER_URLS.runtime);
+  // Storage section (database, state, key-value, files)
+  if (lowerQuestion.match(/\b(database|storage|db|mongodb|persist|state|key-value|aio-lib-db|collection|document)\b/)) {
+    urls.push(
+      guidesBase + 'storage',
+      guidesBase + 'storage/database'
+    );
   }
   
-  if (lowerQuestion.includes('overview') || lowerQuestion.includes('what is') || lowerQuestion.includes('introduction')) {
-    urls.push(APP_BUILDER_URLS.overview);
+  // Logging & Debugging section
+  if (lowerQuestion.match(/\b(log|logging|debug|monitor|troubleshoot|trace)\b/)) {
+    urls.push(
+      guidesBase + 'application_logging'
+    );
   }
   
-  if (lowerQuestion.includes('guide') || urls.length === 0) {
-    urls.push(APP_BUILDER_URLS.guides);
+  // Events section (webhooks, triggers, I/O Events)
+  if (lowerQuestion.match(/\b(event|webhook|trigger|adobe\s+i\/o\s+event)\b/)) {
+    urls.push(
+      'https://developer.adobe.com/app-builder/docs/guides/events/'
+    );
   }
   
-  // Limit to 2 URLs to keep response time reasonable
-  return urls.slice(0, 2);
+  // Security & Authentication section
+  if (lowerQuestion.match(/\b(security|secure|auth|authentication|credential|token|ims|oauth)\b/)) {
+    urls.push(
+      'https://developer.adobe.com/app-builder/docs/guides/security/',
+      'https://developer.adobe.com/app-builder/docs/guides/security/authentication/'
+    );
+  }
+  
+  // Actions & Runtime section
+  if (lowerQuestion.match(/\b(action|function|runtime|invoke|serverless|limit|timeout|memory)\b/)) {
+    urls.push(
+      'https://developer.adobe.com/app-builder/docs/guides/actions/',
+      'https://developer.adobe.com/runtime/docs/guides/'
+    );
+  }
+  
+  // Extensions section
+  if (lowerQuestion.match(/\b(extension|excshell|experience\s+cloud|spa)\b/)) {
+    urls.push(
+      'https://developer.adobe.com/app-builder/docs/guides/extensions/'
+    );
+  }
+  
+  // Overview & Getting Started
+  if (lowerQuestion.match(/\b(what\s+is|overview|introduction|start|begin|getting\s+started|first\s+app)\b/)) {
+    urls.push(
+      DOCS_CONFIG.baseUrl + 'overview/',
+      DOCS_CONFIG.baseUrl + 'getting_started/'
+    );
+  }
+  
+  // If no specific matches, use main guides
+  if (urls.length === 0) {
+    urls.push(DOCS_CONFIG.baseUrl + 'guides/');
+  }
+  
+  // Remove duplicates and limit to 3 URLs (since we're getting more comprehensive coverage)
+  return [...new Set(urls)].slice(0, 3);
 }
 
 /**
@@ -99,6 +148,7 @@ async function fetchAndParseDocs(url) {
     
     const response = await axios.get(url, {
       timeout: 5000,
+      maxRedirects: 5, // Follow redirects
       headers: {
         'User-Agent': 'Adobe-DocuBot/1.0'
       }
@@ -140,7 +190,7 @@ async function fetchAndParseDocs(url) {
 
 module.exports = {
   scrapeDocs,
-  identifyRelevantUrls,
+  buildSearchUrls,
   fetchAndParseDocs,
   DOCS_CONFIG
 };
