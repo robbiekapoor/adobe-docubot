@@ -49,6 +49,34 @@ Type `/ab <your question>` in any Slack channel (or direct message) and get inst
 
 **By default, DocuBot answers questions about Adobe App Builder.** Change two environment variables to point it at any other documentation source.
 
+### Comprehensive App Builder Coverage
+
+**DocuBot scrapes entire documentation sections**, not just individual pages. When you ask a question, it:
+
+1. **Identifies the topic** (deployment, configuration, storage, security, etc.)
+2. **Scrapes ALL related pages** in that section (e.g., deployment section includes main deployment docs, CI/CD, credential rotation, GitHub Actions)
+3. **Passes comprehensive context** to AI for accurate answers
+4. **Includes specific sub-topics** like credential rotation, app hooks, database provisioning, etc.
+
+**Covered Topics:**
+- ✅ Deployment (including CI/CD, credential rotation, GitHub Actions)
+- ✅ Configuration (app.config.yaml, .env, hooks)
+- ✅ Storage (database, state SDK, key-value)
+- ✅ Security (authentication, credentials, IMS)
+- ✅ Logging (application logging, debugging, monitoring)
+- ✅ Events (webhooks, triggers, Adobe I/O Events)
+- ✅ Actions (runtime, limits, timeouts, memory)
+- ✅ Extensions (Experience Cloud Shell, SPAs)
+
+**Example Coverage:**
+```
+Question: "How do I rotate credentials?"
+DocuBot scrapes:
+  - deployment/deployment
+  - deployment/ci_cd
+  - deployment/credential-rotation ← Finds this specific page!
+```
+
 ### Default: App Builder Docs
 
 **Out of the box**, DocuBot scrapes and answers questions from [Adobe App Builder documentation](https://developer.adobe.com/app-builder/docs/).
